@@ -46,5 +46,5 @@ if __name__ == '__main__':
 
     with open('{}.tsv'.format(name), 'r') as f:
         urls = [ url.rstrip() for url in f ]
-    pool = Pool(processes=4) 
+    pool = Pool(processes=30)
     pool.map(downloader, urls)
