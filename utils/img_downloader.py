@@ -2,7 +2,7 @@ import os
 import argparse
 import subprocess
 from urllib import urlretrieve
-
+from multiprocessing import Pool
 
 
 if __name__ == '__main__':
@@ -21,7 +21,7 @@ if __name__ == '__main__':
     tmpTb = '{cn}_tmp.{tb}'.format(cn=args.cn, tb=name)
     cmd = 'bq query -n 0 --replace --use_legacy_sql=False --destination_table={} {}'.format(tmpTb, sql)
     print cmd
-#    subprocess.call(cmd.split(' '))
+    subprocess.call(cmd.split(' '))
 
     gsTmpFP = os.path.join('gs://ven-cust-{cn}/tmp/{fn}.tsv'.format(cn=args.cn, fn=name))
     cmd = 'bq extract --noprint_header -F ''\t'' {} {}'.format(tmpTb, gsTmpFP)
@@ -38,10 +38,13 @@ if __name__ == '__main__':
     subprocess.call(cmd.split(' '))
     os.makedirs(imgDir)
 
+    def downloader(url):
+        h, t = os.path.split(url)
+        if t:
+            print 'download {} ...'.format(url)
+            urlretrieve(url, os.path.join(imgDir, t))
+
     with open('{}.tsv'.format(name), 'r') as f:
-        for url in f:
-            url = url.rstrip()
-            h, t = os.path.split(url)
-            if t:
-                print 'download {}...'.format(url)
-                urlretrieve(url, os.path.join(imgDir, t))
+        urls = [ url.rstrip() for url in f ]
+    pool = Pool(processes=4) 
+    pool.map(downloader, urls)
