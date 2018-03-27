@@ -1,2 +1,2 @@
 # TITAN
-Typing-free Image Tag Augmented Navigation
+Typing-free Image and Tag Augmented Navigation
