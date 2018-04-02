@@ -42,7 +42,7 @@ def search_sim_images(imgFP) :
 
     #-- top predicted classes
     topClsPreds = modelCls.predict(img4D)
-    topClsPreds = decode_predictions(topClsPreds, top=3)
+    topClsPreds = decode_predictions(topClsPreds, top=20)
     print topClsPreds
 
     end = datetime.datetime.now()
@@ -51,17 +51,24 @@ def search_sim_images(imgFP) :
 
     imgBN2Fea1D_dic = {}
     start = datetime.datetime.now()
+    feaClsCnt = 0
     for tTopC in topClsPreds[0]:
         clsID = tTopC[0] 
         feaDir = os.path.join(FEA_VCT_DIR, clsID)    
         bnsFP = os.path.join(feaDir, clsID + '.bns.npy')
         feasFP = os.path.join(feaDir, clsID + '.feas.npy')
+       
+        if os.path.exists(feasFP) and os.path.exists(bnsFP):
+            fea_na = np.load(feasFP)
+            bn_na = np.load(bnsFP)
         
-        fea_na = np.load(feasFP)
-        bn_na = np.load(bnsFP)
+            for basename, fea in itertools.izip(bn_na, fea_na):
+                imgBN2Fea1D_dic[basename] = fea
+
+        feaClsCnt += 1
+        if 3 <= feaClsCnt or 10000 < len(imgBN2Fea1D_dic):
+            break
         
-        for basename, fea in itertools.izip(bn_na, fea_na):
-            imgBN2Fea1D_dic[basename] = fea    
 
     end = datetime.datetime.now()
     print '{} secs'.format((end-start).seconds)
@@ -72,7 +79,7 @@ def search_sim_images(imgFP) :
 
     imgFea1Ds = imgBN2Fea1D_dic.values()
     knn = distance.cdist(imgFea1D, imgFea1Ds, 'cosine')
-    i_knn = np.argsort(knn[0])[0:10]
+    i_knn = np.argsort(knn[0])[:30]
     imgBNs = imgBN2Fea1D_dic.keys()
 
     simImgFNs = [ imgBNs[i] + '.jpg' for i in i_knn ]
