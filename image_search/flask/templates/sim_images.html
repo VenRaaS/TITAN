@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <head>
+    <style>
+        table{
+            width:100%; /*must be set (to any value)*/
+        }
+        .overflow-wrap-hack{
+            max-width:1px;
+        }
+    </style>
+    </head>
+
+    <body>
+        <img src="{{ url_for('send_upload_file', filename=uploadFN) }}" width='300' />
+        <hr> 
+        <table style="width:100%"> 
+            <tr>
+                <td class="overflow-wrap-hack">
+                    {% for fn in localFNs %}
+                        <img src="{{ url_for('send_local_file', filename=fn) }}" width='200' />
+                    {% endfor %} 
+                </td>
+            </tr> 
+        </table>
+    </body>
+</html>
