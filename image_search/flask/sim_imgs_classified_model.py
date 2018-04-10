@@ -66,7 +66,7 @@ def search_sim_images(imgFP) :
                 imgBN2Fea1D_dic[basename] = fea
 
         feaClsCnt += 1
-        if 3 <= feaClsCnt or 10000 < len(imgBN2Fea1D_dic):
+        if 3 <= feaClsCnt or 20000 < len(imgBN2Fea1D_dic):
             break
         
 

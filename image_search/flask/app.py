@@ -1,15 +1,20 @@
 import os
+from json import load
+from urllib2 import urlopen
+
 from flask import Flask, render_template, request, send_from_directory
 from werkzeug import secure_filename
 
-from sim_classified_imgs import search_sim_images
+from sim_imgs_flat_model import search_sim_images
 
 
 app = Flask(__name__)
 
 @app.route('/upload')
 def upload() :
-   return render_template('upload.html')
+    pubIP = load(urlopen('https://api.ipify.org/?format=json'))['ip']
+    print pubIP
+    return render_template('upload.html', pubIP=pubIP)
 
 @app.route('/uploader', methods = ['GET', 'POST'])
 def uploader() :
@@ -20,7 +25,7 @@ def uploader() :
         f.save(fpath)
        
         imgFNs = search_sim_images(fpath)
-###        imgFNs = ['1001369_L.jpg', '1006938_L.jpg', '1007180_L.jpg'] 
+#--DEBUG        imgFNs = ['1001369_L.jpg', '1006938_L.jpg', '1007180_L.jpg'] 
         return render_template('sim_images.html', uploadFN=fn, localFNs=imgFNs)
 
 @app.route('/sfd_uploads/<filename>')
