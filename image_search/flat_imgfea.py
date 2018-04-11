@@ -17,12 +17,15 @@ from keras.applications.resnet50 import ResNet50
 
 tImg4DImgFN_list = Manager().list()
 def data_preprocess(imgFP):
-    if imgFP.endswith('jpg'):
-        img = image.load_img(imgFP, target_size=(224, 224))
-        img3D = image.img_to_array(img)
-        img4D = np.expand_dims(img3D, axis=0)
-        imgFN = os.path.split(imgFP)[1]
-        tImg4DImgFN_list.append( (img4D, imgFN) )
+    try:
+        if imgFP.endswith('jpg'):
+            img = image.load_img(imgFP, target_size=(224, 224))
+            img3D = image.img_to_array(img)
+            img4D = np.expand_dims(img3D, axis=0)
+            imgFN = os.path.split(imgFP)[1]
+            tImg4DImgFN_list.append( (img4D, imgFN) )
+    except Exception as e:
+        print str(e)
 
 if '__main__' == __name__:
     parser = argparse.ArgumentParser()
@@ -39,9 +42,10 @@ if '__main__' == __name__:
     start = datetime.datetime.now()
     imgFPs = [ os.path.join(args.dirImgs, imgFN) for imgFN in os.listdir(args.dirImgs) ]
     ids    = [ i for i in range(len(imgFPs)) ]
+    print 'image filepath - {}, {}'.format(len(imgFPs), imgFPs[:3])
+    print 'image id - {}, {}'.format(len(ids), ids[:3])
 
     pool = Pool(processes=100)
-
     modelFea = ResNet50(weights='imagenet', include_top=False)
 
     step = 1000 
