@@ -10,6 +10,9 @@ from sim_imgs_flat_model import search_sim_images
 
 app = Flask(__name__)
 
+DIR_FEAVCT_MODEL = 'FeaVCT_cc21000_flat'
+
+
 @app.route('/upload')
 def upload() :
     pubIP = load(urlopen('https://api.ipify.org/?format=json'))['ip']
@@ -18,13 +21,15 @@ def upload() :
 
 @app.route('/uploader', methods = ['GET', 'POST'])
 def uploader() :
+    global DIR_FEAVCT_MODEL
+
     if request.method == 'POST':
         f = request.files['file']
         fn = secure_filename(f.filename)
         fpath = os.path.join(app.config['UPLOAD_FOLDER'], fn)
         f.save(fpath)
        
-        imgFNs = search_sim_images(fpath)
+        imgFNs = search_sim_images(DIR_FEAVCT_MODEL, fpath)
 #--DEBUG        imgFNs = ['1001369_L.jpg', '1006938_L.jpg', '1007180_L.jpg'] 
         return render_template('sim_images.html', uploadFN=fn, localFNs=imgFNs)
 
