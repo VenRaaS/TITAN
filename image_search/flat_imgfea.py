@@ -13,6 +13,8 @@ import numpy as np
 from skimage import io
 from keras.applications.resnet50 import preprocess_input, decode_predictions
 from keras.applications.resnet50 import ResNet50
+from keras.applications.vgg16 import VGG16
+from keras.models import Model
 
 
 tImg4DImgFN_list = Manager().list()
@@ -42,16 +44,17 @@ if '__main__' == __name__:
     start = datetime.datetime.now()
     imgFPs = [ os.path.join(args.dirImgs, imgFN) for imgFN in os.listdir(args.dirImgs) ]
     ids    = [ i for i in range(len(imgFPs)) ]
-    print 'image filepath - {}, {}'.format(len(imgFPs), imgFPs[:3])
-    print 'image id - {}, {}'.format(len(ids), ids[:3])
+    print 'image filepath - {}, e.g. {}'.format(len(imgFPs), imgFPs[:3])
+    print 'image id - {}, e.g. {}'.format(len(ids), ids[:3])
 
     pool = Pool(processes=100)
-    modelFea = ResNet50(weights='imagenet', include_top=False)
+    vgg_model = VGG16(weights='imagenet')
+    model = Model(inputs=vgg_model.input, outputs=vgg_model.get_layer('fc1').output)    
 
     step = 1000 
     if len(imgFPs) < step:
         step = len(imgFPs)/2
-    for i in ids[::step]:
+    for i in ids[::step] :
         print 'step - [{},{})'.format(i, i+step)
 
         del tImg4DImgFN_list[:]
@@ -62,8 +65,9 @@ if '__main__' == __name__:
         img4Ds = preprocess_input(img4Ds)
 
         #-- image feature vector
-        imgFeas = modelFea.predict(img4Ds)
-        imgFea1Ds = imgFeas.reshape(img4Ds.shape[0], 1*1*2048) #ResNet50
+        imgFeas = model.predict(img4Ds)
+        imgFea1Ds = imgFeas.reshape(img4Ds.shape[0], 4096) # fc1, vgg16
+#        imgFea1Ds = imgFeas.reshape(img4Ds.shape[0], 1*1*2048) # ResNet50
 
         for imgFN, imgFea in itertools.izip(imgFNs, imgFea1Ds):
             feaDir = args.dirFeaVcts
