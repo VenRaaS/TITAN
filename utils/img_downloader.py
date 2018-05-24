@@ -9,13 +9,18 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-cn', required=True, help='codename')
     parser.add_argument('-dt', required=True, help='datetime, e.g. 20180222')
-    parser.add_argument('-cc', required=True, help='category code')
+    parser.add_argument('-cc', help='category code')
     args = parser.parse_args()
 
     sql = ''
-    with open('query_imgurl.bq.sql', 'r') as f:
-        sql = f.read()
-    sql = sql.format(cn=args.cn, dt=args.dt, ccode=args.cc)
+    if args.cc:
+        with open('query_categ_imgurl.bq.sql', 'r') as f:
+            sql = f.read()
+        sql = sql.format(cn=args.cn, dt=args.dt, ccode=args.cc)
+    else:
+        with open('query_all_imgurl.bq.sql', 'r') as f:
+            sql = f.read()
+        sql = sql.format(cn=args.cn, dt=args.dt)
 
     name = 'imgurls'
     tmpTb = '{cn}_tmp.{tb}'.format(cn=args.cn, tb=name)
