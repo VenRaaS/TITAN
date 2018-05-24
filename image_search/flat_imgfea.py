@@ -11,10 +11,9 @@ from multiprocessing import Pool, Manager
 from keras.preprocessing import image
 import numpy as np
 from skimage import io
-from keras.applications.resnet50 import preprocess_input, decode_predictions
-from keras.applications.resnet50 import ResNet50
-from keras.applications.vgg16 import VGG16
 from keras.models import Model
+from keras.applications.resnet50 import ResNet50
+import keras.applications.vgg16 as vgg16
 
 
 tImg4DImgFN_list = Manager().list()
@@ -48,8 +47,8 @@ if '__main__' == __name__:
     print 'image id - {}, e.g. {}'.format(len(ids), ids[:3])
 
     pool = Pool(processes=100)
-    vgg_model = VGG16(weights='imagenet')
-    model = Model(inputs=vgg_model.input, outputs=vgg_model.get_layer('fc1').output)    
+    vgg_model = vgg16.VGG16(weights='imagenet')
+    model = Model(inputs=vgg_model.input, outputs=vgg_model.get_layer('fc1').output)
 
     step = 1000 
     if len(imgFPs) < step:
@@ -62,7 +61,7 @@ if '__main__' == __name__:
         
         img4Ds, imgFNs = zip(*tImg4DImgFN_list)
         img4Ds = np.concatenate(img4Ds)
-        img4Ds = preprocess_input(img4Ds)
+        img4Ds = vgg16.preprocess_input(img4Ds)
 
         #-- image feature vector
         imgFeas = model.predict(img4Ds)
