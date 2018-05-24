@@ -1,0 +1,16 @@
+<html>
+    <head>
+    </head>
+    
+    <body>
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <p> <input type="file" name="file" style="font-size:60px;"/>
+            </p>
+            <p> <input type="submit" style="font-size:60px;"/>
+            </p>
+        </form>
+      
+   </body>
+</html>
+
