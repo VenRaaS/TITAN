@@ -33,7 +33,7 @@ def simple_upload(request):
         print uploaded_file_url
    
         imgFNs = search_sim_images(uploaded_file_path, 
-                                    (app_settings.imgFea1Ds, app_settings.imgBNs),
+                                    (app_settings.imgFea1Ds, app_settings.norm_imgFea1Ds, app_settings.imgBNs),
                                     app_settings.cnn_model)
         print app_settings.FEATURE_IMAGE_URL
         recImgUrls = map(lambda fn: urlparse.urljoin(app_settings.FEATURE_IMAGE_URL, fn), imgFNs)

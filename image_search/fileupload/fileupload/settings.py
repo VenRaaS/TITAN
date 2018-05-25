@@ -123,7 +123,3 @@ STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-
-##-- model and feature dataset
-FEATURE_DATASET_ROOT = os.path.join(BASE_DIR, 'FeaVCT_cc21000_flat')
-

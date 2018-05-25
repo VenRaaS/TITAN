@@ -29,23 +29,49 @@ end = datetime.datetime.now()
 print 'load cnn model: {} secs'.format((end-start).seconds)
 
 
+#-- model and feature dataset
+FEATURE_DATASET_ROOT = os.path.join(settings.BASE_DIR, 'feavct_cc000000')
+
 #-- load feature dataset
 imgFea1Ds = None
 imgBNs = None
 start = datetime.datetime.now()
-if settings.FEATURE_DATASET_ROOT :
-    pathFeaDS = settings.FEATURE_DATASET_ROOT
+if FEATURE_DATASET_ROOT :
+    pathFeaDS = os.path.split(FEATURE_DATASET_ROOT)[-1]
 
-    dirs = os.path.normpath(pathFeaDS).split(os.path.sep)
-    bnsFP = os.path.join(pathFeaDS, dirs[-1] + '.bns.npy')
-    feasFP = os.path.join(pathFeaDS, dirs[-1] + '.feas.npy')
-    if os.path.exists(feasFP) and os.path.exists(bnsFP):
-        imgFea1Ds = np.load(feasFP)
-        imgBNs = np.load(bnsFP)
-    else:
-        print '[ERROR] feature datasets are not found, {} {}'.format(bnsFP, feasFP)
+    for i in range(100) :
+        fn_fea = '{}.{}.feas.npy'.format(pathFeaDS, i)
+        fn_basename = '{}.{}.bns.npy'.format(pathFeaDS, i)
+
+        path_fea = os.path.join(FEATURE_DATASET_ROOT, fn_fea)
+        path_basename = os.path.join(FEATURE_DATASET_ROOT, fn_basename)
+     
+        if os.path.exists(path_fea) and os.path.exists(path_basename):
+            print 'load {} ...'.format(path_fea)
+            load_fea = np.load(path_fea)
+
+            print 'load {} ...'.format(path_basename )
+            load_bn = np.load(path_basename)
+
+            if type(None) != type(imgFea1Ds): 
+                imgFea1Ds = np.concatenate( (imgFea1Ds, load_fea) )
+                imgBNs = np.concatenate( (imgBNs, load_bn) )
+            else:
+                imgFea1Ds = load_fea
+                imgBNs = load_bn
+        else:
+            break
+
+#-- norm
+from numpy import linalg as LA
+print 'calculate norm of feature vectures ...'
+norm_imgFea1Ds = LA.norm(imgFea1Ds, axis=1)
+print norm_imgFea1Ds.shape
+
 end = datetime.datetime.now()
 print 'load feature dataset: {} secs'.format((end-start).seconds)
 
 
-FEATURE_IMAGE_URL = urljoin(settings.MEDIA_URL, 'image2100000000/')
+FEATURE_IMAGE_URL = urljoin(settings.MEDIA_URL, 'image0000000000/')
+
+
