@@ -50,7 +50,7 @@ def load_fea_dataset(pathFeas) :
 ## @pathFeas, the path of feature dataset 
 ## @imgFP, image file path, e.g. 'image2100000000/981887_L.jpg'
 ##
-def search_sim_images(imgFP, imgFeaBN_tup, in_model=None) :
+def search_sim_images(imgFP, imgFeaBN_trip, in_model=None) :
     start = datetime.datetime.now()
     img3D, img4D, imgFN = data_preprocess(imgFP)
     img4D = preprocess_input(img4D)
@@ -71,7 +71,7 @@ def search_sim_images(imgFP, imgFeaBN_tup, in_model=None) :
     print '{} secs'.format((end-start).seconds)
     
     start = datetime.datetime.now()    
-    imgFea1Ds, imgBNs = imgFeaBN_tup  ### load_fea_dataset(pathFeas)
+    imgFea1Ds, norm_imgFea1Ds, imgBNs = imgFeaBN_trip  ### load_fea_dataset(pathFeas)
     print imgFea1Ds.shape
     print imgBNs.shape
     end = datetime.datetime.now()
@@ -79,12 +79,14 @@ def search_sim_images(imgFP, imgFeaBN_tup, in_model=None) :
 
     start = datetime.datetime.now()
     from scipy.spatial import distance    
-    knn = distance.cdist(imgFea1D, imgFea1Ds, 'cosine')
-    i_knn = np.argsort(knn[0])[0:SIZE_RS_LIST] 
+#    knn = distance.cdist(imgFea1D, imgFea1Ds, 'cosine')
+#    i_knn = np.argsort(knn[0])[0:SIZE_RS_LIST] 
+#    simImgFNs = [ imgBNs[i] + '.jpg' for i in i_knn ]
+    simImgFNs = cosine_similarity(imgFea1D, imgFea1Ds, norm_imgFea1Ds, imgBNs)
+    simImgFNs = map(lambda f: f + '.jpg', simImgFNs)
 
-    simImgFNs = [ imgBNs[i] + '.jpg' for i in i_knn ]
     end = datetime.datetime.now()
-    print '{} secs'.format((end-start).seconds)    
+    print 'cosine similarity: {} secs'.format((end-start).seconds)
 
     return simImgFNs
 
@@ -101,16 +103,21 @@ i2i_logger.setLevel(logging.INFO)
 ImgFea1Ds = None
 Norm_ImgFea1Ds = None
 ImgBNs = None
-def cosine_similarity(i) :
+def cosine_similarity(imgFea1D, imgFea1Ds, norm_imgFea1Ds, imgBNs) :
     #-- produce the nearest neighbor once per feature vector to prevent out of memory during 
     #   dot product of large matries
-    v = ImgFea1Ds[i]
-    sim = np.dot(ImgFea1Ds, v)
-    sim = 1 - sim/LA.norm(v)/Norm_ImgFea1Ds
+###    v = ImgFea1Ds[i]
+###    sim = np.dot(ImgFea1Ds, v)
+
+    imgFea1D = imgFea1D.reshape( (imgFea1D.shape[-1],) )
+    sim = np.dot(imgFea1Ds, imgFea1D)
+    sim = 1 - sim/LA.norm(imgFea1D)/norm_imgFea1Ds
     i_ary = np.argsort(sim)[:20]
 
-    top_l = map(lambda itop: ImgBNs[itop], i_ary)
-    i2i_logger.info( '{}\t{}'.format(ImgBNs[i], ','.join(top_l)) )
+    top_l = map(lambda itop: imgBNs[itop], i_ary)
+#    i2i_logger.info( '{}\t{}'.format(imgBNs[i], ','.join(top_l)) )
+    
+    return top_l
 
 
 def similarity_matrix(pathFeas, outFP) :
