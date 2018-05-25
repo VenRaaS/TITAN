@@ -7,19 +7,16 @@ from multiprocessing import Pool, Manager
 import numpy as np
 
 
-imgBN2Fea1D_dic = Manager().dict()
-def compact_feas_dir(path) :
+tImgBN2Fea1D_list = Manager().list()
+def compact_feas_dir(fpath) :
     imgFea_list = []
     imgBN_list = []
 
-    print '{} is processing...'.format(path)
-    for fn in os.listdir(path):
-        if fn.endswith('.fea.npy'):
-            fp = os.path.join(path, fn)
-#            print fp
-            imgFea = np.load(fp)
-            imgBasename = fn.split('.')[0]
-            imgBN2Fea1D_dic[imgBasename] = imgFea
+    if fpath.endswith('.fea.npy'):
+        imgFea = np.load(fpath)
+        imgBasename = os.path.split(fpath)[-1].split('.')[0]
+        tImgBN2Fea1D_list.append( (imgBasename, imgFea) )
+        print 'bulk vector <= ({}, {})'.format(imgBasename, fpath)
 
 
 if '__main__' == __name__:
@@ -32,20 +29,32 @@ if '__main__' == __name__:
         print 'an invalid dir: {}'.format(modelDir)
         sys.exit(1)
 
-    paths = [ root for root, dirs, files in os.walk(modelDir) ]
+#    paths = [ root for root, dirs, files in os.walk(modelDir) ]
+    files = [ os.path.join(modelDir, f) for f in os.listdir(modelDir) ]
+    num_files = len(files)
+    print 'total feature files: {}'.format(num_files)
 
     pool = Pool(processes=100)
-    pool.map(compact_feas_dir, paths)
 
-    print len(imgBN2Fea1D_dic)
+    step = 50000
+###    step = step if step <= num_files else num_files/2
+    bi = 0
+    for i in xrange(0, num_files, step):
+        del tImgBN2Fea1D_list[:]
+        pool.map(compact_feas_dir, files[i : i+step])
 
-    fea_na = np.asarray(imgBN2Fea1D_dic.values())
-    bn_na = np.asarray(imgBN2Fea1D_dic.keys())
+        basenames, feas = zip(*tImgBN2Fea1D_list)
+        bn_na = np.asarray(basenames)
+        fea_na = np.asarray(feas)
 
-    if 0 < fea_na.size and 0 < bn_na.size:
-        print os.path.join(modelDir, modelDir + '.feas')
-        np.save(os.path.join(modelDir, modelDir + '.feas'), fea_na)
+        if 0 < fea_na.size and 0 < bn_na.size:
+            print os.path.join(modelDir, modelDir + '.{}.feas'.format(bi))
+            np.save(os.path.join(modelDir, modelDir + '.{}.feas'.format(bi)), fea_na)
 
-        print os.path.join(modelDir, modelDir + '.bns')
-        np.save(os.path.join(modelDir, modelDir + '.bns'), bn_na)
+            print os.path.join(modelDir, modelDir + '.{}.bns'.format(bi))
+            np.save(os.path.join(modelDir, modelDir + '.{}.bns'.format(bi)), bn_na)
+       
+        bi += 1
+
+
 
