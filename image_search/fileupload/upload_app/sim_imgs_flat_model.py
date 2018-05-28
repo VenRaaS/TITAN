@@ -71,9 +71,7 @@ def search_sim_images(imgFP, imgFeaBN_trip, in_model=None) :
     print '{} secs'.format((end-start).seconds)
     
     start = datetime.datetime.now()    
-    imgFea1Ds, norm_imgFea1Ds, imgBNs = imgFeaBN_trip  ### load_fea_dataset(pathFeas)
-    print imgFea1Ds.shape
-    print imgBNs.shape
+    imgFea1Ds_list, normImgFea1Ds_list, imgBNs_list = imgFeaBN_trip  ### load_fea_dataset(pathFeas)
     end = datetime.datetime.now()
     print '{} secs'.format((end-start).seconds)
 
@@ -82,13 +80,36 @@ def search_sim_images(imgFP, imgFeaBN_trip, in_model=None) :
 #    knn = distance.cdist(imgFea1D, imgFea1Ds, 'cosine')
 #    i_knn = np.argsort(knn[0])[0:SIZE_RS_LIST] 
 #    simImgFNs = [ imgBNs[i] + '.jpg' for i in i_knn ]
-    simImgFNs = cosine_similarity(imgFea1D, imgFea1Ds, norm_imgFea1Ds, imgBNs)
-    simImgFNs = map(lambda f: f + '.jpg', simImgFNs)
+    simImgBNs = cosine_similarity_list(imgFea1D, imgFea1Ds_list, normImgFea1Ds_list, imgBNs_list)
+    simImgFNs = map(lambda f: f + '.jpg', simImgBNs)
 
     end = datetime.datetime.now()
     print 'cosine similarity: {} secs'.format((end-start).seconds)
 
     return simImgFNs
+
+def cosine_similarity_list(imgFea1D, imgFea1Ds_list, normImgFea1Ds_list, imgBNs_list, topK=20):
+    if 0 != len(imgFea1Ds_list) - len(normImgFea1Ds_list) or \
+       0 != len(imgFea1Ds_list) - len(imgBNs_list) or \
+       0 != len(normImgFea1Ds_list) - len(imgBNs_list):
+        print 'warning, size of input lists are not identical'
+    
+    top_bns = [] 
+    top_sims = []
+    num_partition = len(imgFea1Ds_list)
+    for i in range(num_partition):
+        bns, sims = cosine_similarity( imgFea1D, imgFea1Ds_list[i], normImgFea1Ds_list[i], imgBNs_list[i] )
+        top_bns.extend(bns)
+        top_sims.extend(sims)
+
+    sim_na = np.asarray(top_sims)
+    bn_na = np.asarray(top_bns)
+
+    i_ary = np.argsort(sim_na)[:topK]
+    basenames = [ bn_na[i] for i in i_ary ]
+
+    return basenames
+    
 
     
 import logging
@@ -103,21 +124,24 @@ i2i_logger.setLevel(logging.INFO)
 ImgFea1Ds = None
 Norm_ImgFea1Ds = None
 ImgBNs = None
-def cosine_similarity(imgFea1D, imgFea1Ds, norm_imgFea1Ds, imgBNs) :
+def cosine_similarity(imgFea1D, imgFea1Ds, norm_imgFea1Ds, imgBNs, topK=20) :
     #-- produce the nearest neighbor once per feature vector to prevent out of memory during 
     #   dot product of large matries
 ###    v = ImgFea1Ds[i]
 ###    sim = np.dot(ImgFea1Ds, v)
 
+    #-- input should be 1D, e.g. (1024,) and (1, 1024) isn't acceptable
     imgFea1D = imgFea1D.reshape( (imgFea1D.shape[-1],) )
+
     sim = np.dot(imgFea1Ds, imgFea1D)
     sim = 1 - sim/LA.norm(imgFea1D)/norm_imgFea1Ds
-    i_ary = np.argsort(sim)[:20]
+    i_ary = np.argsort(sim)[:topK]
 
-    top_l = map(lambda itop: imgBNs[itop], i_ary)
+    top_sims = map(lambda itop: sim[itop], i_ary)
+    top_bns = map(lambda itop: imgBNs[itop], i_ary)
 #    i2i_logger.info( '{}\t{}'.format(imgBNs[i], ','.join(top_l)) )
     
-    return top_l
+    return (top_bns, top_sims)
 
 
 def similarity_matrix(pathFeas, outFP) :

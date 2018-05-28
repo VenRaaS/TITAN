@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 import os
 import datetime
 import numpy as np
+from numpy import linalg as LA
 from urlparse import urljoin
 from keras.applications.vgg16 import VGG16
 from keras.models import Model
@@ -35,6 +36,11 @@ FEATURE_DATASET_ROOT = os.path.join(settings.BASE_DIR, 'feavct_cc000000')
 #-- load feature dataset
 imgFea1Ds = None
 imgBNs = None
+norm_imgFea1Ds = None
+imgFea1Ds_list = []
+imgBNs_list = []
+normImgFea1Ds_list = []
+
 start = datetime.datetime.now()
 if FEATURE_DATASET_ROOT :
     pathFeaDS = os.path.split(FEATURE_DATASET_ROOT)[-1]
@@ -49,24 +55,19 @@ if FEATURE_DATASET_ROOT :
         if os.path.exists(path_fea) and os.path.exists(path_basename):
             print 'load {} ...'.format(path_fea)
             load_fea = np.load(path_fea)
+            imgFea1Ds_list.append(load_fea)
 
-            print 'load {} ...'.format(path_basename )
+            print 'load {} ...'.format(path_basename)
             load_bn = np.load(path_basename)
+            imgBNs_list.append(load_bn)
 
-            if type(None) != type(imgFea1Ds): 
-                imgFea1Ds = np.concatenate( (imgFea1Ds, load_fea) )
-                imgBNs = np.concatenate( (imgBNs, load_bn) )
-            else:
-                imgFea1Ds = load_fea
-                imgBNs = load_bn
+            #-- norm
+            print 'calculate norm of feature vectures ...'
+            norm = LA.norm(load_fea, axis=1)
+            print norm
+            normImgFea1Ds_list.append(norm)
         else:
             break
-
-#-- norm
-from numpy import linalg as LA
-print 'calculate norm of feature vectures ...'
-norm_imgFea1Ds = LA.norm(imgFea1Ds, axis=1)
-print norm_imgFea1Ds.shape
 
 end = datetime.datetime.now()
 print 'load feature dataset: {} secs'.format((end-start).seconds)
