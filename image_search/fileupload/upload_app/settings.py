@@ -31,7 +31,7 @@ print 'load cnn model: {} secs'.format((end-start).seconds)
 
 
 #-- model and feature dataset
-FEATURE_DATASET_ROOT = os.path.join(settings.BASE_DIR, 'feavct_cc000000')
+FEATURE_DATASET_ROOT = os.path.join(settings.BASE_DIR, 'feavct00000_10')
 
 #-- load feature dataset
 imgFea1Ds = None

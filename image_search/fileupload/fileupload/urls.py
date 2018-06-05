@@ -21,7 +21,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^image/', include('upload_app.urls')),
+    url(r'^cupid/', include('upload_app.urls')),
 ]
 
 if settings.DEBUG:
