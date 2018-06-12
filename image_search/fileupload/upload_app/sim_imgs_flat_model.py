@@ -6,6 +6,7 @@ import datetime
 import argparse
 import time
 
+import cv2
 import numpy as np
 from skimage import io
 from keras.preprocessing import image
@@ -20,9 +21,32 @@ import keras.applications.vgg16 as vgg16
 SIZE_RS_LIST = 10
 
 def data_preprocess(imgFP) :
+    MAX_H = 224
+    MAX_W = 224
+
     if imgFP.endswith('jpg'):
-        img = image.load_img(imgFP, target_size=(224, 224))
-        img3D = image.img_to_array(img)
+        #-- cv2 handles image rotation, i.e. counter-clockwise 90 degree if iphone
+        img_cv2 = cv2.imread(imgFP)
+        #-- BGR => RGB
+        img_cv2 = img_cv2[:,:,::-1]
+        h, w = img_cv2.shape[:2]
+        if h != w:
+            scaledFac = MAX_H/float(h)
+            scaledFac_w = MAX_W/float(w)
+            if scaledFac < scaledFac_w:
+                scaledFac = scaledFac_w
+            img_cv2 = cv2.resize(img_cv2, None, fx=scaledFac, fy=scaledFac)
+            h, w = img_cv2.shape[:2]
+            
+            box_h = MAX_H
+            box_w = MAX_W
+            top = int((h - box_h) / 2.0) if box_h < h else 0
+            left = int((w - box_w) / 2.0) if box_w < w else 0
+            img_cv2 = img_cv2[ top : top+box_h, left : left+box_w ]
+        else:
+            img_cv2 = cv2.resize(img_cv2, (MAX_W, MAX_H))
+
+        img3D = image.img_to_array(img_cv2)
         img4D = np.expand_dims(img3D, axis=0)
         imgFN = os.path.split(imgFP)[1]
 
