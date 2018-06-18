@@ -16,9 +16,36 @@ from keras.applications.vgg16 import VGG16
 from keras.applications.vgg16 import preprocess_input
 from keras.models import Model
 import keras.applications.vgg16 as vgg16
+from PIL import Image, ExifTags
 
 
 SIZE_RS_LIST = 10
+
+
+def rotate_image_basedon_exif(imgFP):
+    try:
+        img = Image.open(imgFP)
+       
+        #-- get Orientation Key(ID)
+        for orientation in ExifTags.TAGS.keys():
+            if ExifTags.TAGS[orientation] == 'Orientation':
+                break        
+
+        #-- get exif with dict() form
+        exif = img._getexif()
+
+        #-- EXIF Orientation, https://www.impulseadventure.com/photo/exif-orientation.html
+        if exif[orientation] == 3:
+            img_rot = img.rotate(180, expand=True)
+        elif exif[orientation] == 6:
+            img_rot = img.rotate(270, expand=True)
+        elif exif[orientation] == 8:
+            img_rot = img.rotate(90, expand=True)
+
+        img_rot.save(imgFP)
+    except Exception as e:
+        print e.message
+        pass
 
 def data_preprocess(imgFP) :
     MAX_H = 224

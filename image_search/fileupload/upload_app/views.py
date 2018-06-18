@@ -21,7 +21,7 @@ from django.core.files.storage import FileSystemStorage
 from .serializers import FileSerializer
 
 from rest_framework.renderers import TemplateHTMLRenderer
-from sim_imgs_flat_model import search_sim_images
+from sim_imgs_flat_model import search_sim_images, rotate_image_basedon_exif 
 
 
 def simple_upload(request):
@@ -34,6 +34,7 @@ def simple_upload(request):
         uploaded_file_path = fs.path(localFN)
         print uploaded_file_url
    
+        rotate_image_basedon_exif(uploaded_file_path)
         imgFNs = search_sim_images(uploaded_file_path, 
                                     (app_settings.imgFea1Ds_list, app_settings.normImgFea1Ds_list, app_settings.imgBNs_list),
                                     app_settings.cnn_model)
@@ -48,10 +49,11 @@ def simple_upload(request):
 
 
 class Recomd(APIView):
-    parser_classes = (FileUploadParser,)
+#    parser_classes = (FileUploadParser,)
 
     def post(self, request, filename, format='jpg'):
-        up_f = request.data['file']
+#        up_f = request.data['file']
+        up_f = request.FILES['file']
 
         fs = FileSystemStorage()
         localFN = fs.save(filename, up_f)
@@ -61,9 +63,11 @@ class Recomd(APIView):
         uploaded_file_path = fs.path(localFN)
         print uploaded_file_path
 
+        rotate_image_basedon_exif(uploaded_file_path)
         imgFNs = search_sim_images(uploaded_file_path, 
                                     (app_settings.imgFea1Ds_list, app_settings.normImgFea1Ds_list, app_settings.imgBNs_list),
                                     app_settings.cnn_model)
+        print imgFNs
         
         recomd_list = []
         for fn in imgFNs:
