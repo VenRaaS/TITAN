@@ -22,6 +22,7 @@ from .serializers import FileSerializer
 
 from rest_framework.renderers import TemplateHTMLRenderer
 from sim_imgs_flat_model import search_sim_images, rotate_image_basedon_exif 
+from util import query_by_gids
 
 
 def simple_upload(request):
@@ -68,6 +69,10 @@ class Recomd(APIView):
                                     (app_settings.imgFea1Ds_list, app_settings.normImgFea1Ds_list, app_settings.imgBNs_list),
                                     app_settings.cnn_model)
         print imgFNs
+
+        gids = [ fn.split('_')[0] for fn in imgFNs ]
+        gid2props = query_by_gids(gids)
+        print gid2props.keys()
         
         recomd_list = []
         for fn in imgFNs:
@@ -75,7 +80,8 @@ class Recomd(APIView):
             recomd_list.append(
                 {
                     'id': gid,
-                    'name': '',
+                    'name': gid2props[gid]['name'] if gid in gid2props else '',
+                    'sale_price': gid2props[gid]['sale_price'] if gid in gid2props else '',
                     'goods_img_url': urlparse.urljoin(app_settings.FEATURE_IMAGE_URL, fn),
                     'goods_page_url': 'https://www.momoshop.com.tw/goods/GoodsDetail.jsp?i_code={}'.format(gid)
                 })
