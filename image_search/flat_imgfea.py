@@ -6,6 +6,7 @@ import sys
 import datetime
 import shutil
 import itertools
+import logging
 from multiprocessing import Pool, Manager
 
 from keras.preprocessing import image
@@ -14,6 +15,8 @@ from skimage import io
 from keras.models import Model
 from keras.applications.resnet50 import ResNet50
 import keras.applications.vgg16 as vgg16
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s: %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
 
 
 tImg4DImgFN_list = Manager().list()
@@ -26,7 +29,7 @@ def data_preprocess(imgFP):
             imgFN = os.path.split(imgFP)[1]
             tImg4DImgFN_list.append( (img4D, imgFN) )
     except Exception as e:
-        print str(e)
+        logging.error(str(e))
 
 if '__main__' == __name__:
     parser = argparse.ArgumentParser()
@@ -35,7 +38,7 @@ if '__main__' == __name__:
     args = parser.parse_args()
     
     if not os.path.isdir(args.dirImgs):
-        print 'an invalid dir: {}'.format(args.dirImgs)
+        logging.error('an invalid dir: {}'.format(args.dirImgs))
         sys.exit(1)
     
     shutil.rmtree(args.dirFeaVcts, ignore_errors=True)
@@ -43,8 +46,8 @@ if '__main__' == __name__:
     start = datetime.datetime.now()
     imgFPs = [ os.path.join(args.dirImgs, imgFN) for imgFN in os.listdir(args.dirImgs) ]
     ids    = [ i for i in range(len(imgFPs)) ]
-    print 'image filepath - {}, e.g. {}'.format(len(imgFPs), imgFPs[:3])
-    print 'image id - {}, e.g. {}'.format(len(ids), ids[:3])
+    logging.info('image filepath - {}, e.g. {}'.format(len(imgFPs), imgFPs[:3]))
+    logging.info('image id - {}, e.g. {}'.format(len(ids), ids[:3]))
 
     pool = Pool(processes=100)
     vgg_model = vgg16.VGG16(weights='imagenet')
@@ -54,7 +57,7 @@ if '__main__' == __name__:
     if len(imgFPs) < step:
         step = len(imgFPs)/2
     for i in ids[::step] :
-        print 'step - [{},{})'.format(i, i+step)
+        logging.info('step - [{},{})'.format(i, i+step))
 
         del tImg4DImgFN_list[:]
         pool.map(data_preprocess, imgFPs[i:i+step])
@@ -81,5 +84,5 @@ if '__main__' == __name__:
     #imgFPs = [ os.path.join('image1904900000', imgFN) for imgFN in imgFNs ]
     #img3Ds = load_img3Ds(imgFPs)
     end = datetime.datetime.now()
-    print((end-start).seconds)
+    logging.info('total seconds: {}'.format((end-start).seconds))
 
