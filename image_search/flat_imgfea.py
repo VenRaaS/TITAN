@@ -7,9 +7,11 @@ import datetime
 import shutil
 import itertools
 import logging
+from fnmatch import fnmatch
 from multiprocessing import Pool, Manager
 
 from keras.preprocessing import image
+import keras.layers as layers
 import numpy as np
 from skimage import io
 from keras.models import Model
@@ -19,8 +21,50 @@ import keras.applications.vgg16 as vgg16
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s: %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
 
 
+def model_cust_vgg16(fn_mod) :
+    base_model = vgg16.VGG16(include_top=False, input_shape=(224, 224, 3))
+
+    x = base_model.output
+    x = layers.Flatten(name='flatten')(x)
+    x = layers.Dense(256, activation='relu', name='fc1')(x)
+    x = layers.Dense(256, activation='relu', name='fc2')(x)
+    predictions = layers.Dense(10, activation='softmax', name='predictions')(x)
+    model = Model(inputs=base_model.input, outputs=predictions)
+    model.load_weights(fn_mod)
+
+    layer_output = model.get_layer('fc2').output
+
+    model = Model(inputs=model.input, outputs=layer_output)
+    dim_output = layer_output.shape[1] 
+    return (model, dim_output)
+
+
+def model_vgg16() :
+    vgg_model = vgg16.VGG16(weights='imagenet')
+    layer_output = vgg_model.get_layer('fc1').output
+
+    model = Model(inputs=vgg_model.input, outputs=layer_output)
+    dim_output = layer_output.shape[1] 
+    return (model, dim_output)
+
+
+def lsfiles(d, pattern='*.jpg') :
+    fn_list = os.listdir(d)
+
+    fp_list = []
+    for fn in fn_list:
+        path = os.path.join(d, fn)
+        if os.path.isdir(path):
+            fp_list += lsfiles(path)
+        else:
+            if fnmatch(path, pattern):
+                fp_list.append(path)
+
+    return fp_list
+
+
 tImg4DImgFN_list = Manager().list()
-def data_preprocess(imgFP):
+def data_preprocess(imgFP) :
     try:
         if imgFP.endswith('jpg'):
             img = image.load_img(imgFP, target_size=(224, 224))
@@ -30,6 +74,7 @@ def data_preprocess(imgFP):
             tImg4DImgFN_list.append( (img4D, imgFN) )
     except Exception as e:
         logging.error(str(e))
+
 
 if '__main__' == __name__:
     parser = argparse.ArgumentParser()
@@ -44,14 +89,15 @@ if '__main__' == __name__:
     shutil.rmtree(args.dirFeaVcts, ignore_errors=True)
     
     start = datetime.datetime.now()
-    imgFPs = [ os.path.join(args.dirImgs, imgFN) for imgFN in os.listdir(args.dirImgs) ]
+###    imgFPs = [ os.path.join(args.dirImgs, imgFN) for imgFN in os.listdir(args.dirImgs) ]
+    imgFPs = lsfiles(args.dirImgs)
     ids    = [ i for i in range(len(imgFPs)) ]
     logging.info('image filepath - {}, e.g. {}'.format(len(imgFPs), imgFPs[:3]))
     logging.info('image id - {}, e.g. {}'.format(len(ids), ids[:3]))
 
     pool = Pool(processes=100)
-    vgg_model = vgg16.VGG16(weights='imagenet')
-    model = Model(inputs=vgg_model.input, outputs=vgg_model.get_layer('fc1').output)
+#    model, dim_ol = model_vgg16()
+    model, dim_ol = model_cust_vgg16('data_sub.fc-u256.aug.h5')
 
     step = 1000 
     if len(imgFPs) < step:
@@ -68,7 +114,7 @@ if '__main__' == __name__:
 
         #-- image feature vector
         imgFeas = model.predict(img4Ds)
-        imgFea1Ds = imgFeas.reshape(img4Ds.shape[0], 4096) # fc1, vgg16
+        imgFea1Ds = imgFeas.reshape(img4Ds.shape[0], dim_ol) # fc1, vgg16
 #        imgFea1Ds = imgFeas.reshape(img4Ds.shape[0], 1*1*2048) # ResNet50
 
         for imgFN, imgFea in itertools.izip(imgFNs, imgFea1Ds):
