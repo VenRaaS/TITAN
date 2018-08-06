@@ -41,7 +41,7 @@ def model_cust_vgg16(fn_mod) :
 
 def model_vgg16() :
     vgg_model = vgg16.VGG16(weights='imagenet')
-    layer_output = vgg_model.get_layer('fc1').output
+    layer_output = vgg_model.get_layer('fc2').output
 
     model = Model(inputs=vgg_model.input, outputs=layer_output)
     dim_output = layer_output.shape[1] 
@@ -96,8 +96,8 @@ if '__main__' == __name__:
     logging.info('image id - {}, e.g. {}'.format(len(ids), ids[:3]))
 
     pool = Pool(processes=100)
-#    model, dim_ol = model_vgg16()
-    model, dim_ol = model_cust_vgg16('data_sub.fc-u256.aug.h5')
+    model, dim_output = model_vgg16()
+#    model, dim_output = model_cust_vgg16('data_sub.block5-fc-u256.aug.h5')
 
     step = 1000 
     if len(imgFPs) < step:
@@ -114,7 +114,7 @@ if '__main__' == __name__:
 
         #-- image feature vector
         imgFeas = model.predict(img4Ds)
-        imgFea1Ds = imgFeas.reshape(img4Ds.shape[0], dim_ol) # fc1, vgg16
+        imgFea1Ds = imgFeas.reshape(img4Ds.shape[0], dim_output) # fc1, vgg16
 #        imgFea1Ds = imgFeas.reshape(img4Ds.shape[0], 1*1*2048) # ResNet50
 
         for imgFN, imgFea in itertools.izip(imgFNs, imgFea1Ds):
