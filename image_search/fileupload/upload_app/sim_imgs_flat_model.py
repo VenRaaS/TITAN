@@ -51,12 +51,13 @@ def data_preprocess(imgFP) :
     MAX_H = 224
     MAX_W = 224
 
-    if imgFP.endswith('jpg'):
+    if imgFP.endswith('jpg') or imgFP.endswith('jpeg'):
         #-- cv2 handles image rotation, i.e. counter-clockwise 90 degree if iphone
         img_cv2 = cv2.imread(imgFP)
         #-- BGR => RGB
         img_cv2 = img_cv2[:,:,::-1]
         h, w = img_cv2.shape[:2]
+        print h, w
         if h != w:
             scaledFac = MAX_H/float(h)
             scaledFac_w = MAX_W/float(w)
@@ -114,19 +115,22 @@ def search_sim_images(imgFP, imgFeaBN_trip, in_model=None) :
         model_base = VGG16(weights='imagenet')
         model = Model(inputs=model_base.input, outputs=model_base.get_layer('fc1').output)
 
+    preds = model.predict(img4D)
+    print('Predicted:', preds)
+
+    #-- ouptut dimension
+    dim_output = model.layers[-1].output_shape[1]
+
     #-- image feature vector
     imgFea = model.predict(img4D)
-    imgFea1D = imgFea.reshape(img4D.shape[0], 4096)
+    imgFea1D = imgFea.reshape(img4D.shape[0], dim_output)
     print imgFea1D.shape
     end = datetime.datetime.now()
-    print '{} secs'.format((end-start).seconds)
+    print 'img2feavct: {} secs'.format((end-start).seconds)
     
-    start = datetime.datetime.now()    
-    imgFea1Ds_list, normImgFea1Ds_list, imgBNs_list = imgFeaBN_trip  ### load_fea_dataset(pathFeas)
-    end = datetime.datetime.now()
-    print '{} secs'.format((end-start).seconds)
-
     start = datetime.datetime.now()
+    imgFea1Ds_list, normImgFea1Ds_list, imgBNs_list = imgFeaBN_trip 
+
     from scipy.spatial import distance    
 #    knn = distance.cdist(imgFea1D, imgFea1Ds, 'cosine')
 #    i_knn = np.argsort(knn[0])[0:SIZE_RS_LIST] 
