@@ -36,8 +36,7 @@ if '__main__' == __name__:
 
     pool = Pool(processes=100)
 
-    step = 50000
-###    step = step if step <= num_files else num_files/2
+    step = 100 * 1000
     bi = 0
     for i in xrange(0, num_files, step):
         del tImgBN2Fea1D_list[:]
