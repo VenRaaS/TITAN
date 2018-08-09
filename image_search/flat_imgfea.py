@@ -15,37 +15,29 @@ import keras.layers as layers
 import numpy as np
 from skimage import io
 from keras.models import Model
+from keras.models import model_from_json
 from keras.applications.resnet50 import ResNet50
 import keras.applications.vgg16 as vgg16
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s: %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
 
 
-def model_cust_vgg16(fn_mod) :
-    base_model = vgg16.VGG16(include_top=False, input_shape=(224, 224, 3))
-
-    x = base_model.output
-    x = layers.Flatten(name='flatten')(x)
-    x = layers.Dense(256, activation='relu', name='fc1')(x)
-    x = layers.Dense(256, activation='relu', name='fc2')(x)
-    predictions = layers.Dense(10, activation='softmax', name='predictions')(x)
-    model = Model(inputs=base_model.input, outputs=predictions)
-    model.load_weights(fn_mod)
-
-    layer_output = model.get_layer('fc2').output
-
-    model = Model(inputs=model.input, outputs=layer_output)
-    dim_output = layer_output.shape[1] 
-    return (model, dim_output)
+def load_model_arch_weight(arch_fn, weight_fn) :
+    model = None
+    with open(arch_fn, 'r') as mj_f:
+        json_str = mj_f.read()
+        model = model_from_json(json_str)
+    
+    model.load_weights(weight_fn)
+    
+    return model
 
 
-def model_vgg16() :
+def model_vgg16_fc2() :
     vgg_model = vgg16.VGG16(weights='imagenet')
-    layer_output = vgg_model.get_layer('fc2').output
+    model = Model(inputs=vgg_model.input, outputs=vgg_model.get_layer('fc2').output)
 
-    model = Model(inputs=vgg_model.input, outputs=layer_output)
-    dim_output = layer_output.shape[1] 
-    return (model, dim_output)
+    return model
 
 
 def lsfiles(d, pattern='*.jpg') :
@@ -80,6 +72,7 @@ if '__main__' == __name__:
     parser = argparse.ArgumentParser()
     parser.add_argument("dirImgs", help="the directory of the source images")
     parser.add_argument("dirFeaVcts", help="the directory for the output feature vectors of the given images")
+    parser.add_argument("--m", help="the file base (stem) name of the architecture and weight model file")
     args = parser.parse_args()
     
     if not os.path.isdir(args.dirImgs):
@@ -89,16 +82,26 @@ if '__main__' == __name__:
     shutil.rmtree(args.dirFeaVcts, ignore_errors=True)
     
     start = datetime.datetime.now()
-###    imgFPs = [ os.path.join(args.dirImgs, imgFN) for imgFN in os.listdir(args.dirImgs) ]
     imgFPs = lsfiles(args.dirImgs)
     ids    = [ i for i in range(len(imgFPs)) ]
     logging.info('image filepath - {}, e.g. {}'.format(len(imgFPs), imgFPs[:3]))
     logging.info('image id - {}, e.g. {}'.format(len(ids), ids[:3]))
+    logging.info('image id - {}, e.g. {}'.format(len(ids), ids[:3]))
+   
+    model = None 
+    if args.m:
+        fn_model_arch = args.m + '.json'
+        fn_model_weight = args.m + '.h5'
+        logging.info('model files: {}, {}'.format(fn_model_arch, fn_model_weight))
+        model = load_model_arch_weight(fn_model_arch, fn_model_weight)
+    else:
+        model = model_vgg16_fc2()
+
+    model.summary()
+    dim_output = model.outputs[0].shape[1]
+    logging.info('dim of output is {}'.format(dim_output))
 
     pool = Pool(processes=100)
-    model, dim_output = model_vgg16()
-#    model, dim_output = model_cust_vgg16('data_sub.block5-fc-u256.aug.h5')
-
     step = 1000 
     if len(imgFPs) < step:
         step = len(imgFPs)/2
@@ -114,8 +117,7 @@ if '__main__' == __name__:
 
         #-- image feature vector
         imgFeas = model.predict(img4Ds)
-        imgFea1Ds = imgFeas.reshape(img4Ds.shape[0], dim_output) # fc1, vgg16
-#        imgFea1Ds = imgFeas.reshape(img4Ds.shape[0], 1*1*2048) # ResNet50
+        imgFea1Ds = imgFeas.reshape(img4Ds.shape[0], dim_output)
 
         for imgFN, imgFea in itertools.izip(imgFNs, imgFea1Ds):
             feaDir = args.dirFeaVcts
@@ -126,9 +128,6 @@ if '__main__' == __name__:
             feaFP = os.path.join(feaDir, feaFN)
             np.save(feaFP, imgFea)
 
-    #imgFNs = load_imgFNs('cc19049_559.vgg116.fn')
-    #imgFPs = [ os.path.join('image1904900000', imgFN) for imgFN in imgFNs ]
-    #img3Ds = load_img3Ds(imgFPs)
     end = datetime.datetime.now()
     logging.info('total seconds: {}'.format((end-start).seconds))
 
