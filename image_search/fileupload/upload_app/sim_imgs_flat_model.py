@@ -15,6 +15,7 @@ from keras.applications.resnet50 import ResNet50
 from keras.applications.vgg16 import VGG16
 from keras.applications.vgg16 import preprocess_input
 from keras.models import Model
+from keras.models import model_from_json
 import keras.applications.vgg16 as vgg16
 from PIL import Image, ExifTags
 
@@ -57,7 +58,8 @@ def data_preprocess(imgFP) :
         #-- BGR => RGB
         img_cv2 = img_cv2[:,:,::-1]
         h, w = img_cv2.shape[:2]
-        print h, w
+        print 'original H and W: {}, {}'.format(h, w)
+
         if h != w:
             scaledFac = MAX_H/float(h)
             scaledFac_w = MAX_W/float(w)
@@ -74,6 +76,9 @@ def data_preprocess(imgFP) :
         else:
             img_cv2 = cv2.resize(img_cv2, (MAX_W, MAX_H))
 
+        newh, neww = img_cv2.shape[:2]
+        print 'resized H and W: {}, {}'.format(newh, neww)
+
         img3D = image.img_to_array(img_cv2)
         img4D = np.expand_dims(img3D, axis=0)
         imgFN = os.path.split(imgFP)[1]
@@ -82,21 +87,53 @@ def data_preprocess(imgFP) :
 
 
 def load_fea_dataset(pathFeas) :
-    imgFea1Ds = None
-    imgBNs = None
+    imgFea1Ds_list = []
+    imgBNs_list = []
+    normImgFea1Ds_list = []
 
+    start = datetime.datetime.now()
     dirs = os.path.normpath(pathFeas).split(os.path.sep)
     if 0 < len(dirs):
-        bnsFP = os.path.join(pathFeas, dirs[-1] + '.bns.npy')
-        feasFP = os.path.join(pathFeas, dirs[-1] + '.feas.npy')
-        if os.path.exists(feasFP) and os.path.exists(bnsFP):
-            imgFea1Ds = np.load(feasFP)
-            imgBNs = np.load(bnsFP)
-        else:
-            print '[ERROR] feature datasets are not found, {} {}'.format(bnsFP, feasFP)
+        #-- load up to 100 partitations of feature vector bulks
+        for i in range(100) :
+            fn_fea = '{}.{}.feas.npy'.format(dirs[-1], i)
+            fn_basename = '{}.{}.bns.npy'.format(dirs[-1], i)
 
-    return imgFea1Ds, imgBNs 
+            path_fea = os.path.join(pathFeas, fn_fea)
+            path_basename = os.path.join(pathFeas, fn_basename)
+         
+            if os.path.exists(path_fea) and os.path.exists(path_basename):
+                print 'load {} ...'.format(path_fea)
+                load_fea = np.load(path_fea)
+                imgFea1Ds_list.append(load_fea)
 
+                print 'load {} ...'.format(path_basename)
+                load_bn = np.load(path_basename)
+                imgBNs_list.append(load_bn)
+
+                #-- norm
+                print 'calculate norm for each image feature vecture ...'
+                norm = LA.norm(load_fea, axis=1)
+                print norm
+                normImgFea1Ds_list.append(norm)
+            else:
+                print '[WARN] feature datasets are not found, {} {}'.format(path_basename,  path_fea)
+                break
+
+    end = datetime.datetime.now()
+    print 'load feature dataset: {} secs'.format((end-start).seconds)
+    
+    return imgFea1Ds_list, normImgFea1Ds_list, imgBNs_list
+
+def load_model_arch_weight(arch_fn, weight_fn) :
+    model = None
+    with open(arch_fn, 'r') as mj_f:
+        json_str = mj_f.read()
+        model = model_from_json(json_str)
+    
+    model.load_weights(weight_fn)
+    
+    return model
 
 ##
 ## @pathFeas, the path of feature dataset 
@@ -110,13 +147,14 @@ def search_sim_images(imgFP, imgFeaBN_trip, in_model=None) :
     #-- load model
     model = None
     if in_model:
+        print 'predicted by custom model'
         model = in_model
     else:
         model_base = VGG16(weights='imagenet')
-        model = Model(inputs=model_base.input, outputs=model_base.get_layer('fc1').output)
+        model = Model(inputs=model_base.input, outputs=model_base.get_layer('fc2').output)
 
     preds = model.predict(img4D)
-    print('Predicted:', preds)
+    print('Predicted {}:{}'.format(preds.shape, preds[0]))
 
     #-- ouptut dimension
     dim_output = model.layers[-1].output_shape[1]
@@ -130,13 +168,14 @@ def search_sim_images(imgFP, imgFeaBN_trip, in_model=None) :
     
     start = datetime.datetime.now()
     imgFea1Ds_list, normImgFea1Ds_list, imgBNs_list = imgFeaBN_trip 
-
-    from scipy.spatial import distance    
+ 
+    from scipy.spatial import distance
 #    knn = distance.cdist(imgFea1D, imgFea1Ds, 'cosine')
 #    i_knn = np.argsort(knn[0])[0:SIZE_RS_LIST] 
 #    simImgFNs = [ imgBNs[i] + '.jpg' for i in i_knn ]
     simImgBNs = cosine_similarity_list(imgFea1D, imgFea1Ds_list, normImgFea1Ds_list, imgBNs_list)
     simImgFNs = map(lambda f: f + '.jpg', simImgBNs)
+    print simImgFNs
 
     end = datetime.datetime.now()
     print 'cosine similarity: {} secs'.format((end-start).seconds)
@@ -239,7 +278,8 @@ if '__main__' == __name__:
     if 'sm' == args.sp_name:
         similarity_matrix(args.pathFeas, args.outFP)
     elif 'si'  == args.sp_name:
-        imgFea1Ds, imgBNs = load_fea_dataset(args.pathFeas)
-        search_sim_images(args.imgFP, (imgFea1Ds, imgBNs))
+        imgFea1Ds_list, normImgFea1Ds_list, imgBNs_list = load_fea_dataset(args.pathFeas)
+        simImgFNs = search_sim_images(args.imgFP, (imgFea1Ds_list, normImgFea1Ds_list, imgBNs_list))
+        print simImgFNs
 
 
