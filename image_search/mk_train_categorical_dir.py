@@ -46,14 +46,14 @@ def cp_src2dst(imgFP, imgTrainDir) :
 if '__main__' == __name__ :
     parser = argparse.ArgumentParser()
     parser.add_argument("dirImgs", help="the directory of the source images")
-    parser.add_argument("dirFeaVcts", help="the directory for the output feature vectors of the given images")
+    parser.add_argument("dirResult", help="the directory for the categorized results")
     args = parser.parse_args()
     
     if not os.path.isdir(args.dirImgs):
         logging.error('an invalid dir: {}'.format(args.dirImgs))
         sys.exit(1)
     
-    shutil.rmtree(args.dirFeaVcts, ignore_errors=True)
+    shutil.rmtree(args.dirResult, ignore_errors=True)
     
     start = datetime.datetime.now()
     allImgFPs = [ os.path.join(args.dirImgs, imgFN) for imgFN in os.listdir(args.dirImgs) ]
@@ -84,7 +84,7 @@ if '__main__' == __name__ :
 #        logging.info('{}'.format(triCDPs))
 
         for imgFP, triCDP in itertools.izip(imgFPs, triCDPs):
-            feaDir = args.dirFeaVcts
+            feaDir = args.dirResult
             imgTrainDir = os.path.join(feaDir, 'train', '-'.join(triCDP[0][0:2]))
             cp_src2dst(imgFP, imgTrainDir)
 
