@@ -79,6 +79,7 @@ if '__main__' == __name__ :
         img4Ds = vgg16.preprocess_input(img4Ds)
 
         preds = model.predict(img4Ds)
+        #-- decode the results into a list of tuples [(class, description, probability), ...]
         triCDPs = decode_predictions(preds, top=1)
 #        logging.info('{}'.format(triCDPs))
 
