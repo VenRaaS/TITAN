@@ -77,6 +77,7 @@ if '__main__' == __name__ :
     parser = argparse.ArgumentParser()
     parser.add_argument("dirImgs", help="the directory of the source images")
     parser.add_argument("dirResult", help="the root directory for a dir per file result")
+    parser.add_argument("--nnt", default=1.0e-3, help="the threshold of nearest neighbor")
     args = parser.parse_args()
     
     if not os.path.isdir(args.dirImgs):
@@ -90,6 +91,8 @@ if '__main__' == __name__ :
     ids    = [ i for i in range(len(allImgFPs)) ]
     logging.info('#image filepath: {}, e.g. {}'.format(len(allImgFPs), allImgFPs[:3]))
     logging.info('#image id: {}, e.g. {}'.format(len(ids), ids[:3]))
+    logging.info('threshold distance of nearest neighbor: {}'.format(args.nnt))
+    logging.info('--')
 
     part_imgFPs = []
     part_feavcts = []
@@ -133,7 +136,7 @@ if '__main__' == __name__ :
             if 0 == i % 1000:
                 logging.info('image - {}'.format(i))
             
-            nnFPs = nn_lte_threshold(feavct, imgFP, part_feavcts, part_imgFPs)
+            nnFPs = nn_lte_threshold(feavct, imgFP, part_feavcts, part_imgFPs, args.nnt)
             nnFPs.append(imgFP)
 
             rootDir = args.dirResult
