@@ -64,6 +64,7 @@ def nn_lte_threshold(img_feavct, imgFP, part_feavcts, part_imgFPs, threshold = 1
         nn_ids =  np.where(dists <= threshold)[0]
 
         filepaths = [ part_imgFPs[part_i][i] for i in nn_ids ]
+        #-- exclude self
         filepaths = [ p for p in filepaths if p != imgFP ]
 
         if 0 < len(filepaths):
@@ -127,7 +128,9 @@ if '__main__' == __name__ :
         part_feavcts.append( np.asarray(bat_feavcts) )
         part_imgFPs.append( np.asarray(bat_imgFPs) )
 
+    
     i = 0
+    processed_set = set()
     for part_i in range(len(part_imgFPs)):
         logging.info('part - {}'.format(part_i))
 
@@ -135,9 +138,13 @@ if '__main__' == __name__ :
             i += 1
             if 0 == i % 1000:
                 logging.info('image - {}'.format(i))
+
+            if imgFP in processed_set:
+                continue            
             
             nnFPs = nn_lte_threshold(feavct, imgFP, part_feavcts, part_imgFPs, args.nnt)
             nnFPs.append(imgFP)
+            processed_set.update(nnFPs)
 
             rootDir = args.dirResult
             imgFN = os.path.split(imgFP)[-1]
