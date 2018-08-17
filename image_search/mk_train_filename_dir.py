@@ -8,6 +8,7 @@ import shutil
 import itertools
 import shutil
 import logging
+import tempfile
 from multiprocessing import Pool, Manager
 
 from keras.preprocessing import image
@@ -79,6 +80,7 @@ if '__main__' == __name__ :
     parser.add_argument("dirImgs", help="the directory of the source images")
     parser.add_argument("dirResult", help="the root directory for a dir per file result")
     parser.add_argument("--nnt", default=1.0e-3, help="the threshold of nearest neighbor")
+    parser.add_argument("--mas", default=10, help="min augmentation size, min repeat self copy number for data augmentation")
     args = parser.parse_args()
     
     if not os.path.isdir(args.dirImgs):
@@ -93,7 +95,7 @@ if '__main__' == __name__ :
     logging.info('#image filepath: {}, e.g. {}'.format(len(allImgFPs), allImgFPs[:3]))
     logging.info('#image id: {}, e.g. {}'.format(len(ids), ids[:3]))
     logging.info('threshold distance of nearest neighbor: {}'.format(args.nnt))
-    logging.info('--')
+    logging.info('...')
 
     part_imgFPs = []
     part_feavcts = []
@@ -148,11 +150,20 @@ if '__main__' == __name__ :
 
             rootDir = args.dirResult
             imgFN = os.path.split(imgFP)[-1]
-            basename = os.path.splitext(imgFN)[0]
-            imgTrainDir = os.path.join(rootDir, 'train', basename)
+            base = os.path.splitext(imgFN)[0]
+            ext = os.path.splitext(imgFN)[1]
+            imgTrainDir = os.path.join(rootDir, 'train', base)
 
-            for fp in nnFPs :
+            for fp in nnFPs:
                 cp_src2dst(fp, imgTrainDir)
+
+            #-- copy the current file repeatly for further data augmentation
+            for i in range(args.mas):
+                tmpFN = '{}{}'.format(os.path.split(tempfile.NamedTemporaryFile(prefix=base + '_').name)[-1], ext)
+                destFP = os.path.join(imgTrainDir, tmpFN)
+
+                logging.info('data aug: cp {} {}'.format(imgFP, destFP))
+                shutil.copy(imgFP, destFP)
 
     end = datetime.datetime.now()
     logging.info('total seconds: {}'.format((end-start).seconds))
