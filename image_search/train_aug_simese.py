@@ -16,7 +16,7 @@ from keras.datasets import cifar10
 
 
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s: %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
 
 TRAIN_PATH = 'mini_train/train/'
 IMG_H = 224
@@ -24,7 +24,6 @@ IMG_W = 224
 DIM_OUTPUT = 4096
 BATCH_SIZE = 64
 AUG_SIZE_PER_IMAGE = 8
-STEPS_PER_EPOCH = 500 #460
 EPOCHS = 20
 
 
@@ -78,11 +77,7 @@ def model_vgg16_fc2() :
     return model
 
 
-def xy_generator(trainDir, img2vct_cnn, dist_identical_img=1.0e-3):
-#    print 'xy_generator'
-
-    imgFPs = [ os.path.join(trainDir, f) for f in os.listdir(trainDir) if os.path.isfile( os.path.join(trainDir, f)) ]
-
+def xy_generator(imgFPs, size_anchor, img2vct_cnn, dist_identical_img=1.0e-3):
     imgDataGen = ImageDataGenerator(
         rescale=1./255,
         zoom_range=0.5,
@@ -90,21 +85,6 @@ def xy_generator(trainDir, img2vct_cnn, dist_identical_img=1.0e-3):
         height_shift_range=0.1,
         fill_mode='nearest'
     )
-
-#    xy_gen = imgDataGen.flow_from_directory(
-#        'train_22850/train',
-##        'mini_train/train/',
-#        save_to_dir='tmp_mini_train_aug',
-#        save_format='jpeg',
-#        target_size=(IMG_H, IMG_W),
-#        batch_size=BATCH_SIZE,
-#        class_mode='binary'
-#    )    
-#    logging.debug(xy_gen.class_indices)
-
-
-    #-- *2 due to the pairs of positive and negative samples
-    size_anchor = BATCH_SIZE / (AUG_SIZE_PER_IMAGE*2)
 
     while True:
         x_pairs = []
@@ -136,13 +116,13 @@ def xy_generator(trainDir, img2vct_cnn, dist_identical_img=1.0e-3):
                         if j != x_i:
                             logging.info('{} {} are identical images'.format(imgfps[j], imgfps[x_i]))
 
-        x_train = []
-        y_train = []
         size_aug = AUG_SIZE_PER_IMAGE
         labels = set(labels)
         if len(labels) < 2:
             continue
         
+        x_train = []
+        y_train = []
         #-- duplicates for image augmentation 
         for x_i in labels:
             for i in range(size_aug):
@@ -184,11 +164,12 @@ def xy_generator(trainDir, img2vct_cnn, dist_identical_img=1.0e-3):
                     j, k = ids_labels[i_l][i], ids_labels[i_l][(i+1) % n]
                     x_pairs += [ [x_aug_img[j], x_aug_img[k]] ]
 
+                    #-- negative sample pair
                     r = random.randrange(1, num_classes)
                     i_l_neg = (i_l + r) % num_classes
                     j, k = ids_labels[i_l][i], ids_labels[i_l_neg][i]
-                    #-- positive sample pair
                     x_pairs += [ [x_aug_img[j], x_aug_img[k]] ]
+
                     y_labels += [1, 0]
 
             break
@@ -210,6 +191,7 @@ if '__main__' ==  __name__:
 #    gpu_options = tf.GPUOptions(allow_growth=True)
 #    sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
 #    K.set_session(sess)
+    trainDir = 'img_sub2k'
 
     input_shape = (IMG_H, IMG_W, 3)
     input_a = layers.Input(shape=input_shape)
@@ -231,11 +213,20 @@ if '__main__' ==  __name__:
         metrics = [accuracy]
     )
 
+    #-- *2 due to the pairs of positive and negative samples
+    size_anchor = BATCH_SIZE / (AUG_SIZE_PER_IMAGE*2)
+
+    #-- input image file path
+    imgFPs = [ os.path.join(trainDir, f) for f in os.listdir(trainDir) if os.path.isfile( os.path.join(trainDir, f)) ]
+
+    steps_per_epoch = len(imgFPs) / size_anchor
+    logging.info('steps_per_epoch: {}'.format(steps_per_epoch))
+
     img2vct_cnn = model_vgg16_fc2()
     img2vct_cnn.predict( np.zeros((1, 224, 224, 3)) )
     model.fit_generator(
-        xy_generator('img_sub2k', img2vct_cnn),
-        steps_per_epoch = STEPS_PER_EPOCH,
+        xy_generator(imgFPs, size_anchor, img2vct_cnn),
+        steps_per_epoch = steps_per_epoch,
         epochs = EPOCHS
     )
 
