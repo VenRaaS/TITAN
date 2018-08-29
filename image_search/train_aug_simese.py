@@ -130,6 +130,8 @@ def xy_generator(imgFPs, size_anchor, img2vct_cnn, dist_identical_img=1.0e-3):
                 x_train.append(anchor_imgs[x_i])
         y_train = np.array(y_train)
         x_train = np.array(x_train)
+        logging.debug('x_train: {}'.format(x_train.shape))
+        logging.debug('y_train: {}'.format(y_train.shape))
 
         for x_aug_img, y_aug_labels in imgDataGen.flow(
                                         x_train, y_train,
@@ -137,7 +139,6 @@ def xy_generator(imgFPs, size_anchor, img2vct_cnn, dist_identical_img=1.0e-3):
 #                                        save_to_dir='tmp_aug_sub22850',
 #                                        save_prefix='jpeg'
                                         ):
-            logging.debug('y_aug: {}'.format(y_aug_labels))
 
             labels = np.asarray(y_aug_labels)
             dedup_labels = np.asarray( list(set(y_aug_labels)) )
@@ -176,10 +177,9 @@ def xy_generator(imgFPs, size_anchor, img2vct_cnn, dist_identical_img=1.0e-3):
                 
         x_pairs_np = np.array(x_pairs)
         y_labels_np = np.array(y_labels)
-        logging.debug(x_pairs_np.shape)
-        logging.debug('x\'s shape:{}, y\'s shape:{}'.format(x_pairs_np.shape, y_labels_np.shape))
+        logging.debug('x\'s shape:{}'.format(x_pairs_np.shape))
+        logging.debug('y\'s shape:{}'.format(y_labels_np.shape))
 
-        logging.info(x_pairs_np.shape)
         yield [x_pairs_np[:,0], x_pairs_np[:,1]], y_labels_np
     
 
@@ -213,14 +213,17 @@ if '__main__' ==  __name__:
         metrics = [accuracy]
     )
 
-    #-- *2 due to the pairs of positive and negative samples
-    size_anchor = BATCH_SIZE / (AUG_SIZE_PER_IMAGE*2)
 
     #-- input image file path
     imgFPs = [ os.path.join(trainDir, f) for f in os.listdir(trainDir) if os.path.isfile( os.path.join(trainDir, f)) ]
+    logging.info('Input Dir: {} has {} images'.format(trainDir, len(imgFPs)))
+    
+    logging.info('BATCH_SIZE: {}, AUG_SIZE_PER_IMAGE: {}'.format(BATCH_SIZE, AUG_SIZE_PER_IMAGE))
 
+    #-- *2 due to the pairs of positive and negative samples
+    size_anchor = BATCH_SIZE / (AUG_SIZE_PER_IMAGE*2)
     steps_per_epoch = len(imgFPs) / size_anchor
-    logging.info('steps_per_epoch: {}'.format(steps_per_epoch))
+    logging.info('steps_per_epoch: {} due to size_anchor: {}'.format(steps_per_epoch, size_anchor))
 
     img2vct_cnn = model_vgg16_fc2()
     img2vct_cnn.predict( np.zeros((1, 224, 224, 3)) )
