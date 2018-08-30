@@ -8,7 +8,7 @@ import keras.layers as layers
 import numpy as np
 
 
-DIM_OUTPUT = 256
+DIM_OUTPUT = 1024
 
 BATCH_SIZE = 64
 
@@ -28,22 +28,17 @@ if '__main__' ==  __name__:
     model = Model(inputs=base_model.input, outputs=predictions)
 
     #-- set trainable layers
-#    for l in base_model.layers:
-#        l.trainable = False
+    for l in base_model.layers:
+        l.trainable = False
     
     for i, l in  enumerate(model.layers):
-        if i < 15:
-            l.trainable = False
-        else:
-            l.trainable = True
         print '{} {}.trainable: {}'.format(i, l.name, l.trainable)
-
-    model.load_weights('data_sub.fc-u256.aug.out')
+#    model.load_weights('data_sub.fc-u256.aug.out')
 
     model.compile(
         loss='categorical_crossentropy',
-#        optimizer='adam',
-        optimizer=optimizers.SGD(lr=1e-4, momentum=0.9),
+        optimizer='adam',
+#        optimizer=optimizers.SGD(lr=1e-4, momentum=0.9),
         metrics=['accuracy']
     )
  
@@ -68,7 +63,27 @@ if '__main__' ==  __name__:
         epochs=100
     )
 
+    for i, l in  enumerate(model.layers):
+        if i < 15:
+            l.trainable = False
+        else:
+            l.trainable = True
+        print '{} {}.trainable: {}'.format(i, l.name, l.trainable)
+
+    model.compile(
+        loss='categorical_crossentropy',
+#        optimizer='adam',
+        optimizer=optimizers.SGD(lr=1e-4, momentum=0.9),
+        metrics=['accuracy']
+    )
+
+    model.fit_generator(
+        train_generator,
+        steps_per_epoch=460,
+        epochs=100
+    )
+
 #    model.save_weights('data_sub.fc-u{dim}.aug.out'.format(dim=DIM_OUTPUT))
-    model.save_weights('data_sub.block5-fc-u{dim}.aug.out'.format(dim=DIM_OUTPUT))
+    model.save_weights('data_sub.block5.fc-u{dim}.aug.h5'.format(dim=DIM_OUTPUT))
 
 
