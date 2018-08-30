@@ -24,6 +24,8 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s: %(me
 
 def load_model_arch_weight(arch_fn, weight_fn) :
     model = None
+
+    logging.info('model files: {}, {}'.format(arch_fn, weight_fn))
     with open(arch_fn, 'r') as mj_f:
         json_str = mj_f.read()
         model = model_from_json(json_str)
@@ -92,7 +94,6 @@ if '__main__' == __name__:
     if args.m:
         fn_model_arch = args.m + '.json'
         fn_model_weight = args.m + '.h5'
-        logging.info('model files: {}, {}'.format(fn_model_arch, fn_model_weight))
         model = load_model_arch_weight(fn_model_arch, fn_model_weight)
     else:
         model = model_vgg16_fc2()
