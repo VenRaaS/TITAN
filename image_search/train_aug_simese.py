@@ -18,13 +18,12 @@ from keras.datasets import cifar10
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
 
-TRAIN_PATH = 'mini_train/train/'
 IMG_H = 224
 IMG_W = 224
 DIM_OUTPUT = 4096
 BATCH_SIZE = 64
-AUG_SIZE_PER_IMAGE = 8
-EPOCHS = 20
+AUG_SIZE_PER_IMAGE = 16
+EPOCHS = 50
 
 
 
@@ -79,10 +78,10 @@ def model_vgg16_fc2() :
 
 def xy_generator(imgFPs, size_anchor, img2vct_cnn, dist_identical_img=1.0e-3):
     imgDataGen = ImageDataGenerator(
-        rescale=1./255,
-        zoom_range=0.5,
-        width_shift_range=0.1,
-        height_shift_range=0.1,
+#        rescale=1./255,
+        zoom_range=0.4,
+#        width_shift_range=0.1,
+#        height_shift_range=0.1,
         fill_mode='nearest'
     )
 
@@ -92,6 +91,7 @@ def xy_generator(imgFPs, size_anchor, img2vct_cnn, dist_identical_img=1.0e-3):
 
         anchor_imgs = []
         anchor_ids = np.random.randint(len(imgFPs), size=size_anchor)
+
         imgfps = []
         for i in anchor_ids:
             imgfps.append(imgFPs[i])
@@ -127,7 +127,7 @@ def xy_generator(imgFPs, size_anchor, img2vct_cnn, dist_identical_img=1.0e-3):
         for x_i in labels:
             for i in range(size_aug):
                 y_train.append(x_i)
-                x_train.append(anchor_imgs[x_i])
+                x_train.append(x[x_i])
         y_train = np.array(y_train)
         x_train = np.array(x_train)
         logging.debug('x_train: {}'.format(x_train.shape))
@@ -163,13 +163,15 @@ def xy_generator(imgFPs, size_anchor, img2vct_cnn, dist_identical_img=1.0e-3):
                 for i in range(n):
                     #-- positive sample pair
                     j, k = ids_labels[i_l][i], ids_labels[i_l][(i+1) % n]
-                    x_pairs += [ [x_aug_img[j], x_aug_img[k]] ]
+#                    x_pairs += [ [x_aug_img[j], x_aug_img[k]] ]
+                    x_pairs += [ [x[i_l], x_aug_img[k]] ]
 
                     #-- negative sample pair
                     r = random.randrange(1, num_classes)
                     i_l_neg = (i_l + r) % num_classes
                     j, k = ids_labels[i_l][i], ids_labels[i_l_neg][i]
-                    x_pairs += [ [x_aug_img[j], x_aug_img[k]] ]
+#                    x_pairs += [ [x_aug_img[j], x_aug_img[k]] ]
+                    x_pairs += [ [x[i_l], x_aug_img[k]] ]
 
                     y_labels += [1, 0]
 
@@ -191,7 +193,7 @@ if '__main__' ==  __name__:
 #    gpu_options = tf.GPUOptions(allow_growth=True)
 #    sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
 #    K.set_session(sess)
-    trainDir = 'img_sub2k'
+    trainDir = 'img_sub16'
 
     input_shape = (IMG_H, IMG_W, 3)
     input_a = layers.Input(shape=input_shape)
@@ -213,7 +215,6 @@ if '__main__' ==  __name__:
         metrics = [accuracy]
     )
 
-
     #-- input image file path
     imgFPs = [ os.path.join(trainDir, f) for f in os.listdir(trainDir) if os.path.isfile( os.path.join(trainDir, f)) ]
     logging.info('Input Dir: {} has {} images'.format(trainDir, len(imgFPs)))
@@ -222,7 +223,8 @@ if '__main__' ==  __name__:
 
     #-- *2 due to the pairs of positive and negative samples
     size_anchor = BATCH_SIZE / (AUG_SIZE_PER_IMAGE*2)
-    steps_per_epoch = len(imgFPs) / size_anchor
+#    steps_per_epoch = len(imgFPs) / size_anchor
+    steps_per_epoch = len(imgFPs) 
     logging.info('steps_per_epoch: {} due to size_anchor: {}'.format(steps_per_epoch, size_anchor))
 
     img2vct_cnn = model_vgg16_fc2()
@@ -234,8 +236,8 @@ if '__main__' ==  __name__:
     )
 
     modelJson = base_network.to_json()
-    with open('img_sub2k.aug.simese.fc2-u{dim}.json'.format(dim=DIM_OUTPUT), "w") as m2j:
+    with open('img_sub16.aug.simese.fc2-u{dim}.json'.format(dim=DIM_OUTPUT), "w") as m2j:
         m2j.write(modelJson)
 
-    base_network.save_weights('img_sub2k.aug.simese.fc2-u{dim}.h5'.format(dim=DIM_OUTPUT))
+    base_network.save_weights('img_sub16.aug.simese.fc2-u{dim}.h5'.format(dim=DIM_OUTPUT))
 
