@@ -22,14 +22,14 @@ IMG_H = 224
 IMG_W = 224
 DIM_OUTPUT = 4096
 BATCH_SIZE = 64
-AUG_SIZE_PER_IMAGE = 16
-EPOCHS = 50
+AUG_SIZE_PER_IMAGE = 2
+EPOCHS = 100
 
 
 
 def euclidean_distance(vects):
     x, y = vects
-    return K.sqrt(K.maximum(K.sum(K.square(x - y), axis=1, keepdims=True), K.epsilon()))
+    return K.sqrt(K.maximum(K.sum(K.square(x - y), axis=1, keepdims=True), K.epsilon())) / 1000
 
 
 def eucl_dist_output_shape(shapes):
@@ -79,7 +79,7 @@ def model_vgg16_fc2() :
 def xy_generator(imgFPs, size_anchor, img2vct_cnn, dist_identical_img=1.0e-3):
     imgDataGen = ImageDataGenerator(
 #        rescale=1./255,
-        zoom_range=0.4,
+        zoom_range=0.5,
 #        width_shift_range=0.1,
 #        height_shift_range=0.1,
         fill_mode='nearest'
@@ -99,11 +99,10 @@ def xy_generator(imgFPs, size_anchor, img2vct_cnn, dist_identical_img=1.0e-3):
             img_nda = image.img_to_array(img)
             anchor_imgs.append(img_nda)
         x = np.array(anchor_imgs)
-        
         x = vgg16.preprocess_input(x)
-        feavcts = img2vct_cnn.predict(x)
 
         labels = [None] * x.shape[0]
+        feavcts = img2vct_cnn.predict(x)
         norm_feavcts = LA.norm(feavcts, axis=1)
         for x_i, fv in enumerate(feavcts):
             sim = np.dot(feavcts, fv)
@@ -236,8 +235,7 @@ if '__main__' ==  __name__:
     )
 
     modelJson = base_network.to_json()
-    with open('img_sub16.aug.simese.fc2-u{dim}.json'.format(dim=DIM_OUTPUT), "w") as m2j:
+    with open('img_sub16.aug{aug}.simese.fc2-u{dim}.json'.format(aug=AUG_SIZE_PER_IMAGE, dim=DIM_OUTPUT), "w") as m2j:
         m2j.write(modelJson)
-
-    base_network.save_weights('img_sub16.aug.simese.fc2-u{dim}.h5'.format(dim=DIM_OUTPUT))
+    base_network.save_weights('img_sub16.aug{aug}.simese.fc2-u{dim}.h5'.format(aug=AUG_SIZE_PER_IMAGE, dim=DIM_OUTPUT))
 
