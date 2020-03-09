@@ -3,6 +3,7 @@ Typing-free Image and Tag Augmented Navigation
 
 ## Environment
 ### [Miniconda](https://conda.io/miniconda.html)
+We use Miniconda to handle the compatible of python packages and make the virtual pyhton env.
 * [download](https://docs.conda.io/en/latest/miniconda.html#linux-installers)
 * [install](https://conda.io/projects/conda/en/latest/user-guide/install/linux.html#)
 * [getting started with conda](https://conda.io/docs/user-guide/getting-started.html#)
