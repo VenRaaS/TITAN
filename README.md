@@ -1,7 +1,12 @@
-## TITAN
+# TITAN
 Typing-free Image and Tag Augmented Navigation
 
-## Environment
+# TOC
+
+
+
+
+## Setup the environment
 ### [Miniconda](https://conda.io/miniconda.html)
 We use Miniconda to handle the compatibility between the python packages and make the virtual pyhton env.
 * [download](https://docs.conda.io/en/latest/miniconda.html#linux-installers)
@@ -33,8 +38,8 @@ keras.backend.tensorflow_backend._get_available_gpus()
 
 ## Start services
 There are 2 services need to start:
-1. Django - the web server for image search 
-2. Elasticsearch - the search engine for tag search
+* Django - the web server for image search 
+* Elasticsearch - the search engine for tag search
 
 ```
 # Image search
@@ -48,7 +53,10 @@ cd elk/elasticsearch/
 ./bin/elasticsearch -d
 ```
 
-### 
+### URLs to access
+```
+
+```
 
 
 
