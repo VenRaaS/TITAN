@@ -1,7 +1,8 @@
 # TOC
 * [Setup the environment](#setup-the-environment)
-* [Start services](#start-services)
-* [URLs to access the services](#urls-to-access-the-services)
+* [Services](#services)
+  * [Start services](#start-services)
+  * [URLs to access the services](#urls-to-access-the-services)
 
 # TITAN
 Typing-free Image and Tag Augmented Navigation
@@ -36,7 +37,8 @@ import keras
 keras.backend.tensorflow_backend._get_available_gpus()
 ```
 
-## Start services
+## Services
+### Start services
 There are 2 services need to start:
 * Django - the web server for image search 
 * Elasticsearch - the search engine for tag search
