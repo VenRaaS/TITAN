@@ -60,10 +60,10 @@ cd elk/elasticsearch/
 `http://venraas.github.io/demo/recomd_mobile_20190408_package/recomd_tags_cam.html`
 
 #### image search simple demo 
-`http://${IP}/cupid/upload/`
+`http://${ServerIP}:8000/cupid/upload/`
 
 #### elasticsearch (chrome app - Elasticsearch Head)
-`http://${IP}:9200`
+`http://${ServerIP}:9200`
 
 
 
