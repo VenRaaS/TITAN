@@ -1,6 +1,7 @@
 # TOC
 * [Setup the environment](#setup-the-environment)
 * [Start services](#start-services)
+* [URLs to access the services](#urls-to-access-the-services)
 
 # TITAN
 Typing-free Image and Tag Augmented Navigation
