@@ -54,10 +54,14 @@ cd elk/elasticsearch/
 ```
 
 ### URLs to access the services
-#### demo site 
+#### Demo site 
 `http://venraas.github.io/demo/recomd_mobile_20190408_package/recomd_tags_cam.html`
+
 #### image search simple demo 
 `http://${IP}/cupid/upload/`
+
+#### elasticsearch (chrome app - Elasticsearch Head)
+`http://${IP}:9200`
 
 
 
