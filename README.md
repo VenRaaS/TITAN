@@ -1,10 +1,9 @@
-# TITAN
-Typing-free Image and Tag Augmented Navigation
-
 # TOC
 * [Setup the environment](#setup-the-environment)
 * [Start services](#start-services)
 
+# TITAN
+Typing-free Image and Tag Augmented Navigation
 
 ## Setup the environment
 ### [Miniconda](https://conda.io/miniconda.html)
