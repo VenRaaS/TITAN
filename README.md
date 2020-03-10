@@ -53,10 +53,11 @@ cd elk/elasticsearch/
 ./bin/elasticsearch -d
 ```
 
-### URLs to access
-```
-
-```
+### URLs to access the services
+#### demo site 
+`http://venraas.github.io/demo/recomd_mobile_20190408_package/recomd_tags_cam.html`
+#### image search simple demo 
+`http://${IP}/cupid/upload/`
 
 
 
