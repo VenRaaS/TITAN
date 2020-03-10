@@ -31,3 +31,15 @@ import keras
 keras.backend.tensorflow_backend._get_available_gpus()
 ```
 
+## Start services
+### Image search
+```
+sudo su -l titan 
+cd TITAN/image_search/fileupload/
+nohup python manage.py runserver 0.0.0.0:8000 &
+```
+
+### 
+
+
+
