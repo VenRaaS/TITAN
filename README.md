@@ -33,8 +33,8 @@ keras.backend.tensorflow_backend._get_available_gpus()
 
 ## Start services
 There are 2 services need to start:
-1. Django server for image search 
-2. Elasticsearch for tag search
+1. Django - the web server for image search 
+2. Elasticsearch - the search engine for tag search
 
 ```
 # Image search
