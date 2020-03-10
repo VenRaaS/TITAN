@@ -32,11 +32,20 @@ keras.backend.tensorflow_backend._get_available_gpus()
 ```
 
 ## Start services
-### Image search
+There are 2 services need to start:
+1. Django server for image search 
+2. Elasticsearch for tag search
+
 ```
+# Image search
 sudo su -l titan 
 cd TITAN/image_search/fileupload/
 nohup python manage.py runserver 0.0.0.0:8000 &
+
+# tag navigation
+sudo su -l elk
+cd elk/elasticsearch/
+./bin/elasticsearch -d
 ```
 
 ### 
