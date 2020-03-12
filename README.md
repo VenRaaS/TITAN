@@ -81,3 +81,14 @@ optional arguments:
   -h, --help  show this help message and exit
 ```
 
+### compact_feature_dir.py
+```
+usage: compact_feature_dir.py [-h] dir
+
+positional arguments:
+  dir         the root dir of all image features
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
+
