@@ -67,6 +67,7 @@ cd elk/elasticsearch/
 
 ## Generate Dense Vector
 ### flat_imgfea.py
+`python flat_imgfea.py n04204238-shopping_basket vgg16_dense`
 ```
 usage: flat_imgfea.py [-h] dirImgs dirFeaVcts
 
@@ -77,5 +78,4 @@ positional arguments:
 optional arguments:
   -h, --help  show this help message and exit
 ```
-
 
