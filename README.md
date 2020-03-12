@@ -66,4 +66,16 @@ cd elk/elasticsearch/
 `http://${ServerIP}:9200`
 
 ## Generate Dense Vector
+### flat_imgfea.py
+```
+usage: flat_imgfea.py [-h] dirImgs dirFeaVcts
+
+positional arguments:
+  dirImgs     the directory of the source images
+  dirFeaVcts  the directory for the output feature vectors of the given images
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
+
 
