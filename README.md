@@ -67,7 +67,7 @@ cd elk/elasticsearch/
 
 ## Generate Dense Vector
 ### flat_imgfea.py
-Generates the model dense vectors for all input images.
+Generates the model dense vectors for all input images.  
 eg. `python flat_imgfea.py n04204238-shopping_basket vgg16_dense`  
 
 ```
@@ -82,6 +82,7 @@ optional arguments:
 ```
 
 ### compact_feature_dir.py
+Concates a bunch of the image feature vectors into a compact bulk vector.
 ```
 usage: compact_feature_dir.py [-h] dir
 
