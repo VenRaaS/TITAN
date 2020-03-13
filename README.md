@@ -66,7 +66,7 @@ cd elk/elasticsearch/
 `http://${ServerIP}:9200`
 
 ## Generate Dense Vector Model 
-In this step, we generate the images dense vectors, [flat_imgfea.py](#flat_imgfea.py), and concatenate them into multiple bulks with numpy format.
+In this step, we generate the images dense vectors, [flat_imgfea.py](#flat_imgfeapy), and concatenate them, [compact_feature_dir.py](#compact_feature_dirpy), into multiple compact bulks with numpy format.
 
 ### flat_imgfea.py
 Generates the model dense vectors for all input images. 
