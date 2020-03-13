@@ -71,7 +71,7 @@ In this step, we generate the images dense vectors, [flat_imgfea.py](#flat_imgfe
 
 We will apply this dense vector model to calculate the [similarity](https://en.wikipedia.org/wiki/Cosine_similarity) with the input image and seek the nearest topK for result.
 
-![](https://raw.githubusercontent.com/VenRaaS/TITAN/master/doc/image/online_densevector_model.PNG)
+![](https://raw.githubusercontent.com/VenRaaS/TITAN/master/doc/image/online_dense_vector_model.PNG)
 
 ### flat_imgfea.py
 Generates the model dense vectors for all input images.  
