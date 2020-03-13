@@ -88,7 +88,7 @@ optional arguments:
 
 ### compact_feature_dir.py
 Concatenates a bunch of the image feature vectors into a compact bulk vector.  
-Ex. `python flat_imgfea.py n04204238-shopping_basket vgg16_dense`
+Ex. `python compact_feature_dir.py vgg16_dense`
 
 ```
 usage: compact_feature_dir.py [-h] dir
