@@ -69,6 +69,8 @@ cd elk/elasticsearch/
 ## Generate Online Dense Vector Model 
 In this step, we generate the images dense vectors, [flat_imgfea.py](#flat_imgfeapy), and concatenate them, [compact_feature_dir.py](#compact_feature_dirpy), into multiple compact bulks with [numpy](https://docs.scipy.org/doc/numpy/reference/generated/numpy.save.html) format.
 
+We will apply this dense vector model to calculate the [similarity](https://en.wikipedia.org/wiki/Cosine_similarity) with the input image and seek the nearest topK for result.
+
 ![](https://raw.githubusercontent.com/VenRaaS/TITAN/master/doc/image/online_densevector_model.PNG)
 
 ### flat_imgfea.py
