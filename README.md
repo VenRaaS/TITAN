@@ -65,9 +65,11 @@ cd elk/elasticsearch/
 #### elasticsearch (chrome app - Elasticsearch Head)
 `http://${ServerIP}:9200`
 
-## Generate Dense Vector
+## Generate Dense Vector Model 
+In this step, we generate the images dense vectors, [flat_imgfea.py](#flat_imgfea.py), and concatenate them into multiple bulks with numpy format.
+
 ### flat_imgfea.py
-Generates the model dense vectors for all input images.  
+Generates the model dense vectors for all input images. 
 eg. `python flat_imgfea.py n04204238-shopping_basket vgg16_dense`  
 
 ```
@@ -82,7 +84,7 @@ optional arguments:
 ```
 
 ### compact_feature_dir.py
-Concates a bunch of the image feature vectors into a compact bulk vector.
+Concatenates a bunch of the image feature vectors into a compact bulk vector.
 ```
 usage: compact_feature_dir.py [-h] dir
 
