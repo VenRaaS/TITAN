@@ -69,7 +69,7 @@ cd elk/elasticsearch/
 ## Generate Online Dense Vector Model 
 In this step, we generate the images dense vectors, [flat_imgfea.py](#flat_imgfeapy), and concatenate them, [compact_feature_dir.py](#compact_feature_dirpy), into multiple compact bulks with [numpy](https://docs.scipy.org/doc/numpy/reference/generated/numpy.save.html) format.
 
-![](https://github.com/VenRaaS/TITAN/blob/master/doc/image/image_densevector_model.PNG)
+![](https://raw.githubusercontent.com/VenRaaS/TITAN/master/doc/image/online_densevector_model.PNG)
 
 ### flat_imgfea.py
 Generates the model dense vectors for all input images.  
