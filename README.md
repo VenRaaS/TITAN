@@ -3,6 +3,7 @@
 * [Services](#services)
   * [Start services](#start-services)
   * [URLs to access the services](#urls-to-access-the-services)
+* [Generate online dense vector model](#generate-online-dense-vector-model)  
 
 # TITAN
 Typing-free Image and Tag Augmented Navigation
@@ -65,7 +66,7 @@ cd elk/elasticsearch/
 #### elasticsearch (chrome app - Elasticsearch Head)
 `http://${ServerIP}:9200`
 
-## Generate Dense Vector Model 
+## Generate Online Dense Vector Model 
 In this step, we generate the images dense vectors, [flat_imgfea.py](#flat_imgfeapy), and concatenate them, [compact_feature_dir.py](#compact_feature_dirpy), into multiple compact bulks with numpy format.
 
 ### flat_imgfea.py
