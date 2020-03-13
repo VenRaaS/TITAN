@@ -69,8 +69,8 @@ cd elk/elasticsearch/
 In this step, we generate the images dense vectors, [flat_imgfea.py](#flat_imgfeapy), and concatenate them, [compact_feature_dir.py](#compact_feature_dirpy), into multiple compact bulks with numpy format.
 
 ### flat_imgfea.py
-Generates the model dense vectors for all input images. 
-eg. `python flat_imgfea.py n04204238-shopping_basket vgg16_dense`  
+Generates the model dense vectors for all input images.  
+Ex. `python flat_imgfea.py n04204238-shopping_basket vgg16_dense`
 
 ```
 usage: flat_imgfea.py [-h] dirImgs dirFeaVcts
@@ -84,7 +84,9 @@ optional arguments:
 ```
 
 ### compact_feature_dir.py
-Concatenates a bunch of the image feature vectors into a compact bulk vector.
+Concatenates a bunch of the image feature vectors into a compact bulk vector.  
+Ex. `python flat_imgfea.py n04204238-shopping_basket vgg16_dense`
+
 ```
 usage: compact_feature_dir.py [-h] dir
 
